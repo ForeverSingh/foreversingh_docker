@@ -1,0 +1,53 @@
+version: '2'
+services:
+
+  api:
+    build: ../foreversingh_api
+    command: rails server -b 0.0.0.0 -p 3002
+    container_name: foreversingh_api
+    depends_on:
+      - postgres
+      - redis
+      # - elasticsearch
+    environment:
+      - ENVIRONMENT=development
+      - RUN_DB_MIGRATIONS=true
+      - ELASTICSEARCH_URL=elasticsearch:9200
+      - RAILS_PORT=3001
+    ports:
+      - "3001:3001"
+    volumes:
+      - ../foreversingh_api:/usr/src/app
+
+  # elasticsearch:
+  #   build: dockerfiles/elasticsearch
+  #   container_name: elasticsearch
+  #   depends_on:
+  #     - postgres
+  #   image: elasticsearch
+  #   ports:
+  #     - "9200:9200"
+
+  frontend:
+    build: ../fs_react
+    command: yarn start
+    container_name: fs_frontend
+    # depends_on:
+    #   - api
+    environment:
+      - ENVIRONMENT=development
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../fs_react:/usr/src/app
+
+  redis:
+    container_name: fs_redis
+    command: redis-server
+    image: redis
+    ports:
+      - "6379:6379"
+
+  postgres:
+    container_name: fs_postgres
+    image: postgres:9.6.5-alpine
